@@ -1,15 +1,10 @@
-import express, { Application } from "express";
 import "dotenv/config";
-import { startDatabase } from "./database";
-import { registerDeveloper } from "./logics";
+import express, { Application, json } from "express";
+import { developersRoute } from "./routers";
 
 const app: Application = express();
-app.use(express.json());
+app.use(json());
 
-app.post("/developers", registerDeveloper);
+app.use("/developers", developersRoute);
 
-app.listen(process.env.DB_PORT, async () => {
-  await startDatabase();
-  console.log("listening");
-});
 export default app;
