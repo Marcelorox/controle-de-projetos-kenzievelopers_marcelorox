@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
 import { Developers, DevelopersCreate, DevelopersResulte } from "../interfaces";
 import format from "pg-format";
-import { QueryResult } from "pg";
+import { QueryConfig, QueryResult } from "pg";
 import { client } from "../database";
 
-const create = async (payload: DevelopersCreate): Promise<Developers> => {
+const createDev = async (payload: DevelopersCreate): Promise<Developers> => {
   const queryString: string = format(
     'INSERT INTO  "developers" (%I) VALUES (%L) RETURNING * ',
     Object.keys(payload),
@@ -16,12 +15,63 @@ const create = async (payload: DevelopersCreate): Promise<Developers> => {
   return queryresult.rows[0];
 };
 
-const list = async (id: string): Promise<Developers> => {
-  const queryResult: DevelopersResulte = await client.query(
-    "SELECT * FROM developers WHERE id = $1;",
-    [id]
-  );
+const listDev = async (id: string): Promise<Developers> => {
+  const queryList: string = `
+    SELECT 
+    "d"."id" AS "developerId",
+    "d"."name" AS "developerName",
+    "d"."email" AS "developerEmail",
+    "di"."DeveloperSince" AS "developerInfoDeveloperSince",
+    "di"."prefferedOS" AS "developerInfoPrefferedOS",
+    FROM "developers" AS "d"
+    LEFT JOIN "developerInfos" AS "di"
+    ON "di"."id" - "d"."id"
+    WHERE "d"."id" - $1
+    `;
+  const queryResult: DevelopersResulte = await client.query(queryList, [id]);
+
   return queryResult.rows[0];
 };
 
-export default { create, list };
+const patchDev = async (
+  id: string,
+  payload: Developers
+): Promise<Developers> => {
+  const queryString: string = format(
+    `
+    UPDATE "developers"
+    SET (%I) = ROW (%L)
+    WHERE "id" = $1
+    RETURNING *;
+  `,
+    Object.keys(payload),
+    Object.values(payload)
+  );
+
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [id],
+  };
+  const queryResult: DevelopersResulte = await client.query(queryConfig);
+
+  return queryResult.rows[0];
+};
+
+const deleteDeveloper = async (id: string) => {
+  const queryString: string = `
+      DELETE FROM "developers"
+      WHERE "id" = $1
+      RETURNING *;
+    `;
+
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [id],
+  };
+
+  const queryResult: DevelopersResulte = await client.query(queryConfig);
+
+  return queryResult.rows[0];
+};
+
+export default { createDev, listDev, patchDev, deleteDeveloper };

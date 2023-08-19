@@ -1,3 +1,4 @@
-import create from "./developers.services";
+import developersServices from "./developers.services";
+import projectsServices from "./projects.services";
 
-export { create };
+export { developersServices, projectsServices };
