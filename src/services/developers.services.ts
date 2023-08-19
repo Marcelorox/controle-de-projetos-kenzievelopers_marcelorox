@@ -2,6 +2,10 @@ import { Developers, DevelopersCreate, DevelopersResulte } from "../interfaces";
 import format from "pg-format";
 import { QueryConfig, QueryResult } from "pg";
 import { client } from "../database";
+import {
+  DevelopersInfoCreate,
+  DevelopersInfoResulte,
+} from "../interfaces/developers.interface";
 
 const createDev = async (payload: DevelopersCreate): Promise<Developers> => {
   const queryString: string = format(
@@ -15,19 +19,35 @@ const createDev = async (payload: DevelopersCreate): Promise<Developers> => {
   return queryresult.rows[0];
 };
 
+const createDevInfo = async (
+  id: string,
+  payload: DevelopersInfoCreate
+): Promise<Developers> => {
+  const { developerSince, preferredOS } = payload;
+
+  const queryString: string = `
+    INSERT INTO "developerInfos" ("developerSince", "preferredOS", "developerId")
+    VALUES ($1, $2, $3)
+    RETURNING *
+  `;
+
+  const queryResult: QueryResult = await client.query(queryString, [
+    developerSince,
+    preferredOS,
+    id,
+  ]);
+
+  return queryResult.rows[0];
+};
+
 const listDev = async (id: string): Promise<Developers> => {
-  const queryList: string = `
-    SELECT 
+  const queryList: string = `SELECT 
     "d"."id" AS "developerId",
     "d"."name" AS "developerName",
-    "d"."email" AS "developerEmail",
-    "di"."DeveloperSince" AS "developerInfoDeveloperSince",
-    "di"."prefferedOS" AS "developerInfoPrefferedOS",
+    "d"."email" AS "developerEmail"
     FROM "developers" AS "d"
-    LEFT JOIN "developerInfos" AS "di"
-    ON "di"."id" - "d"."id"
-    WHERE "d"."id" - $1
-    `;
+    WHERE "d"."id" = $1`;
+
   const queryResult: DevelopersResulte = await client.query(queryList, [id]);
 
   return queryResult.rows[0];
@@ -57,7 +77,7 @@ const patchDev = async (
   return queryResult.rows[0];
 };
 
-const deleteDeveloper = async (id: string) => {
+const deleteDev = async (id: string) => {
   const queryString: string = `
       DELETE FROM "developers"
       WHERE "id" = $1
@@ -74,4 +94,4 @@ const deleteDeveloper = async (id: string) => {
   return queryResult.rows[0];
 };
 
-export default { createDev, listDev, patchDev, deleteDeveloper };
+export default { createDev, listDev, patchDev, deleteDev, createDevInfo };

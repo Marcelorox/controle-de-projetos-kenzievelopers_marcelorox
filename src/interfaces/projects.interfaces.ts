@@ -1,6 +1,7 @@
 import { QueryResult } from "pg";
 
 type Projects = {
+  id: number;
   name: string;
   description: string;
   repository: string;

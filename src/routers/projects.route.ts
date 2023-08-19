@@ -1,10 +1,20 @@
 import { Router } from "express";
-import { verifyEmail, verifyId } from "../middlewares/middlewares";
+import { verifyDeveloperIdProject, verifyIdProject } from "../middlewares";
 import { projectsControllers } from "../controllers";
 
 const projectsRouter: Router = Router();
 
-projectsRouter.post("", verifyId, projectsControllers.createProject);
+projectsRouter.post(
+  "",
+  verifyDeveloperIdProject,
+  projectsControllers.createProject
+);
 projectsRouter.get("/:id", verifyIdProject, projectsControllers.listProject);
-projectsRouter.patch("/:id", verifyIdProject, projectsControllers.patchProject);
+projectsRouter.patch(
+  "/:id",
+  verifyIdProject,
+  verifyDeveloperIdProject,
+
+  projectsControllers.patchProject
+);
 export default projectsRouter;

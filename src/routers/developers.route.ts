@@ -1,11 +1,25 @@
 import { Router } from "express";
 import { registerDeveloper } from "../logics";
 import { developersController } from "../controllers";
-import { verifyEmail, verifyId } from "../middlewares/middlewares";
+import {
+  validatePreferredOS,
+  verifyDeveloperInfo,
+  verifyEmail,
+  verifyId,
+} from "../middlewares";
 
 const developersRoute: Router = Router();
 
+developersRoute.delete("/:id", verifyId, developersController.deleteDev);
+
 developersRoute.post("", verifyEmail, developersController.createDev);
+developersRoute.post(
+  "/:id/infos",
+  validatePreferredOS,
+  verifyId,
+  verifyDeveloperInfo,
+  developersController.createDevInfo
+);
 developersRoute.get("/:id", verifyId, developersController.listDev);
 developersRoute.patch(
   "/:id",
@@ -13,4 +27,5 @@ developersRoute.patch(
   verifyEmail,
   developersController.patchDeveloper
 );
+
 export default developersRoute;
